@@ -129,6 +129,31 @@ function post(value, option = {}, visibility = "public", force) {
     }
 }
 
+function report(data, lv) {
+    if (is_running) {
+        request.post({
+            url: "https://" + config.domain + "/api/v1/reports",
+            formData: {
+                'account_id': data['account']['id'],
+                'status_ids': [data['id']],
+                'comment': '[BOT] AIがNSFWを検知 Lv: '+lv
+            },
+            headers: {'Authorization': 'Bearer '+config.token}
+        }, function callback(err, httpResponse, body) {
+            if (err) {
+                console.error('request failed:', err);
+                return;
+            }
+            let resp = JSON.parse(body);
+            if (resp["id"]) {
+                console.log("OK:POST:"+resp["id"]);
+            } else {
+                console.warn("NG:POST:"+body);
+            }
+        });
+    }
+}
+
 function checkImage(data) {
     request.post({
         url: 'http://localhost:8080',
@@ -143,7 +168,8 @@ function checkImage(data) {
         let resp = +body;
         console.log(resp);
         if (resp >= 0.8) {
-            post("検知レベル: " + resp, {in_reply_to_id: data['id']}, "direct");
+            report(data, body);
+            //post("検知レベル: " + resp, {in_reply_to_id: data['id']}, "direct");
         }
     });
 }
