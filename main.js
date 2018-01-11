@@ -137,7 +137,7 @@ function checkImage(data) {
     request.post({
         url: 'http://localhost:8080',
         formData: {
-            'image': data['media_attachments'][0]["preview_url"],
+            'url': data['media_attachments'][0]["preview_url"],
         }
     }, function callback(err, httpResponse, body) {
         if (err) {
