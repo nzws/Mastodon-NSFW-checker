@@ -1,0 +1,24 @@
+{
+  "name": "mastodon-nsfw-checker",
+  "version": "1.0.0",
+  "description": "Image check bot for Mastodon",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuzulabo/Mastodon-NSFW-checker.git"
+  },
+  "author": "yuzulabo (neziri_wasabi)",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/yuzulabo/Mastodon-NSFW-checker/issues"
+  },
+  "homepage": "https://github.com/yuzulabo/Mastodon-NSFW-checker#readme",
+  "dependencies": {
+    "node-fetch": "^1.7.3",
+    "request": "^2.83.0",
+    "websocket": "^1.0.25"
+  }
+}
