@@ -134,8 +134,8 @@ function report(data, lv) {
         request.post({
             url: "https://" + config.domain + "/api/v1/reports",
             formData: {
-                'account_id': data['account']['id'],
-                'status_ids': [data['id']],
+                'account_id': ""+data['account']['id'],
+                'status_ids': [""+data['id']],
                 'comment': '[BOT] AIがNSFWを検知 Lv: '+lv
             },
             headers: {'Authorization': 'Bearer '+config.token}
