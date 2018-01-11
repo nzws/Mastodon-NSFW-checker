@@ -135,10 +135,7 @@ function post(value, option = {}, visibility = "public", force) {
 
 function checkImage(data) {
     request.post({
-        url: 'https://api.deepai.org/api/nsfw-detector',
-        headers: {
-            'Api-Key': config.AI_Key
-        },
+        url: 'http://localhost:8080',
         formData: {
             'image': data['media_attachments'][0]["preview_url"],
         }
