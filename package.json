@@ -17,7 +17,6 @@
   },
   "homepage": "https://github.com/yuzulabo/Mastodon-NSFW-checker#readme",
   "dependencies": {
-    "node-fetch": "^1.7.3",
     "request": "^2.83.0",
     "websocket": "^1.0.25"
   }

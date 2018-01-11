@@ -1,7 +1,6 @@
 let is_running = 1;
 let admin_i = 0, admin_pm = false, whitelist = false, i = 0, acct_whitelist = "";
 let config = require('./config');
-let fetch = require('node-fetch');
 let request = require('request');
 
 if (!config.domain || !config.token ||
@@ -111,24 +110,21 @@ function post(value, option = {}, visibility = "public", force) {
         optiondata.in_reply_to_id = option.in_reply_to_id;
     }
     if (is_running || force) {
-        fetch("https://" + config.domain + "/api/v1/statuses", {
-            headers: {'Authorization': 'Bearer '+config.token},
-            method: 'POST',
-            body: JSON.stringify(optiondata)
-        }).then(function(response) {
-            if(response.ok) {
-                return response.json();
-            } else {
-                throw new Error();
+        request.post({
+            url: "https://" + config.domain + "/api/v1/statuses",
+            formData: optiondata,
+            headers: {'Authorization': 'Bearer '+config.token}
+        }, function callback(err, httpResponse, body) {
+            if (err) {
+                console.error('request failed:', err);
+                return;
             }
-        }).then(function(json) {
-            if (json["id"]) {
+            let resp = JSON.parse(body);
+            if (resp["id"]) {
                 console.log("OK:POST");
             } else {
-                console.warn("NG:POST:"+json);
+                console.warn("NG:POST:"+body);
             }
-        }).catch(function(error) {
-            console.warn("NG:POST:SERVER"+error);
         });
     }
 }
