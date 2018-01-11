@@ -144,10 +144,10 @@ function checkImage(data) {
             console.error('request failed:', err);
             return;
         }
-        let response = JSON.parse(body);
-        console.log(response);
-        if (response['output']['nsfw_score'] >= 0.8) {
-            post("検知レベル: " + response['output']['nsfw_score'], {in_reply_to_id: data['id']}, "direct");
+        let resp = +body;
+        console.log(resp);
+        if (resp >= 0.8) {
+            post("検知レベル: " + resp, {in_reply_to_id: data['id']}, "direct");
         }
     });
 }
