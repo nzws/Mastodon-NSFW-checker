@@ -8,92 +8,96 @@ if (!config.domain || !config.token ||
     console.log("ERROR!:config情報が不足しています！");
     process.exit();
 }
+main();
+function main() {
+    let WebSocketClient = require('websocket').client;
+    let client = new WebSocketClient();
 
-let WebSocketClient = require('websocket').client;
-let client = new WebSocketClient();
-
-client.on('connectFailed', function(error) {
-    console.log('Connect Error: ' + error.toString());
-});
-
-client.on('connect', function(connection) {
-    console.log('WebSocket Client Connected');
-    connection.on('error', function(error) {
-        console.log("Connection Error: " + error.toString());
+    client.on('connectFailed', function(error) {
+        console.log('Connect Error: ' + error.toString());
     });
-    connection.on('close', function() {
-        console.log('AkariBot Connection Closed');
-        //鯖落ち
-    });
-    connection.on('message', function(message) {
-        //console.log(message);
-        try {
-            if (message.type === 'utf8') {
-                let json = JSON.parse(JSON.parse(message.utf8Data).payload);
-                if (json['account']) {
-                    let acct = json['account']['acct'];
-                    let text = json['content'];
-                    if (acct !== config.bot_id) {
-                        if (is_running) {
-                            //終了
-                            if (text.match(/!stop/i)) {
-                                admin_i = 0;
-                                admin_pm = false;
 
-                                while (config.bot_admin[admin_i]) {
-                                    if (acct === config.bot_admin[admin_i]) admin_pm = true;
-                                    admin_i++;
-                                }
+    client.on('connect', function(connection) {
+        console.log('WebSocket Client Connected');
+        connection.on('error', function(error) {
+            console.log("Connection Error: " + error.toString());
+        });
+        connection.on('close', function() {
+            console.log('サーバとの接続が切れました。60秒後にリトライします...');
+            setTimeout( function() {
+                main();
+            }, 60000);
+            //鯖落ち
+        });
+        connection.on('message', function(message) {
+            //console.log(message);
+            try {
+                if (message.type === 'utf8') {
+                    let json = JSON.parse(JSON.parse(message.utf8Data).payload);
+                    if (json['account']) {
+                        let acct = json['account']['acct'];
+                        let text = json['content'];
+                        if (acct !== config.bot_id) {
+                            if (is_running) {
+                                //終了
+                                if (text.match(/!stop/i)) {
+                                    admin_i = 0;
+                                    admin_pm = false;
 
-                                if (admin_pm) {
-                                    if (acct !== config.bot_admin[0]) {
-                                        post("@"+acct+" @"+config.bot_admin[0]+" 終了しました。", {}, "direct");
-                                    }
-                                    change_running(0);
-                                    console.log("OK:STOP:@"+acct);
-                                }
-                            }
-
-                            if (json['media_attachments'][0] && !json['sensitive']) {
-                                if (json['media_attachments'][0]["type"] === "image") {
-                                    i = 0;
-                                    whitelist = false;
-                                    acct_whitelist = "";
-
-                                    if (!acct.match(/@/i)) {
-                                        acct_whitelist = acct + "@" + config.domain;
-                                    } else {
-                                        acct_whitelist = acct;
-                                    }
-                                    if (config.whitelist.match(new RegExp(acct_whitelist, 'i'))) {
-                                        whitelist = true;
+                                    while (config.bot_admin[admin_i]) {
+                                        if (acct === config.bot_admin[admin_i]) admin_pm = true;
+                                        admin_i++;
                                     }
 
-                                    if (!whitelist) {
-                                        checkImage(json);
+                                    if (admin_pm) {
+                                        if (acct !== config.bot_admin[0]) {
+                                            post("@"+acct+" @"+config.bot_admin[0]+" 終了しました。", {}, "direct");
+                                        }
+                                        change_running(0);
+                                        console.log("OK:STOP:@"+acct);
                                     }
                                 }
-                            }
-                        } else {
-                            if (acct === config.bot_admin[0]) {
-                                if (text.match(/!start/i)) {
-                                    change_running(1);
-                                    post("@"+ config.bot_admin[0] +" 起動しました。", {}, "direct");
+
+                                if (json['media_attachments'][0] && !json['sensitive']) {
+                                    if (json['media_attachments'][0]["type"] === "image") {
+                                        i = 0;
+                                        whitelist = false;
+                                        acct_whitelist = "";
+
+                                        if (!acct.match(/@/i)) {
+                                            acct_whitelist = acct + "@" + config.domain;
+                                        } else {
+                                            acct_whitelist = acct;
+                                        }
+                                        if (config.whitelist.match(new RegExp(acct_whitelist, 'i'))) {
+                                            whitelist = true;
+                                        }
+
+                                        if (!whitelist) {
+                                            checkImage(json);
+                                        }
+                                    }
+                                }
+                            } else {
+                                if (acct === config.bot_admin[0]) {
+                                    if (text.match(/!start/i)) {
+                                        change_running(1);
+                                        post("@"+ config.bot_admin[0] +" 起動しました。", {}, "direct");
+                                    }
                                 }
                             }
                         }
                     }
                 }
+            } catch (e) {
+                post("@"+ config.bot_admin[0] +" 【エラー検知】\n\n"+ e, {}, "direct");
+                change_running(0);
             }
-        } catch (e) {
-        	post("@"+ config.bot_admin[0] +" 【エラー検知】\n\n"+ e, {}, "direct");
-            change_running(0);
-        }
+        });
     });
-});
 
-client.connect("wss://" + config.domain + "/api/v1/streaming/?access_token=" + config.token + "&stream=public");
-
+    client.connect("wss://" + config.domain + "/api/v1/streaming/?access_token=" + config.token + "&stream=public");
+}
 
 // ここからいろいろ
 
@@ -168,8 +172,8 @@ function checkImage(data) {
         let resp = +body;
         console.log(resp);
         if (resp >= 0.8) {
-            report(data, body);
-            //post("検知レベル: " + resp, {in_reply_to_id: data['id']}, "direct");
+            //report(data, body);
+            post("Lv: " + resp, {in_reply_to_id: data['id']}, "private");
         }
     });
 }
